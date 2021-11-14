@@ -16,7 +16,7 @@ The references are:
 
 The results:
 
-![](algos_roll_and_pitch\res.jpg)
+![](./algos_roll_and_pitch/res.jpg)
 
 ## 2. State estimaton using both IMU and Magnetometer Information
 
@@ -37,7 +37,7 @@ The references are:
 
 The results:
 
-![](algos_quaternion\complementary_filter.jpg)
+![](./algos_quaternion/complementary_filter.jpg)
 
 ## Matlab's estimation function
 
