@@ -1,4 +1,9 @@
-clear
+clear;
+addpath("algos_quaternion")
+
+% Matlab: Choose Inertial Sensor Fusion Filters
+% https://www.mathworks.com/help/fusion/ug/introduction-on-choosing-inertial-sensor-fusion-filters.html
+
 folders = ["20211012_handheld", "20211012_orientationctrl_test", "20211012_positionctl_test"];
 fid = 1;
 raw_data_topics = ["imu0", "imu1", "mavros_imu_data_raw", "mavros_imu_mag"];
@@ -15,34 +20,36 @@ accel = imu_data_raw(:, 27:29);   % Linear Accelaration
 mag = imu_mag_raw(:, 2:4);        % Magnetometers
 mag = interp1(t2, mag, t1, 'linear');    % Align mag with gyro and accel
 
-% Run Complementary Filter
-orientation = complementary_filter(accel, gyro, mag, t1);
+sampleRate = 1/mean(t1(2:end)-t1(1:end-1));
+% Run Matlab Complementary Filter
+FUSE = complementaryFilter('SampleRate', sampleRate);
+[orientation_CF, angularVelocity_CF] = FUSE(accel(1:end-1, :), gyro(1:end-1, :), mag(1:end-1, :));
 
-% Run Kalman Filter
-% orientation = kalman_filter(accel, gyro, mag, t1);
+% Run Matlab Kalman Filter
+FUSE = ahrsfilter('SampleRate', sampleRate);
+[orientation_KF, angularVelocity_KF] = FUSE(accel(1:end-1, :), gyro(1:end-1, :), mag(1:end-1, :));
 
 % load gt
 imu_data_gt = load(folders(fid) + "/" + gt_data_topics(3) + ".txt");
 imu_data_quat = imu_data_gt(:, [5, 2:4]);
 t2 = imu_data_gt(:, 1) - imu_data_raw(1, 1);
-vicon_gt = load(folders(fid) + "/vicon_m500_joec_m500_joec.txt");
-vicon_quat = vicon_gt(:, [6:8, 5]);
-t3 = vicon_gt(:, 1) - imu_data_raw(1, 1);
 
+% translater to euler angle
 type = "euler";
 gt_eul = normalize_orientation(imu_data_quat, type);
-res_eul = normalize_orientation(orientation, type);
-vicon_eul = normalize_orientation(vicon_quat, type);
+res_eul_CF = normalize_orientation(orientation_CF, type);
+res_eul_KF = normalize_orientation(orientation_KF, type);
 
 figure;
 titles = ["yaw", "pitch", "roll"];
 for i = 1:3
-    subplot(3, 1, i)
-    % plot(t3, vicon_eul(:, i))
-    % hold on
-    plot(t2, gt_eul(:, i))
-    hold on
-    plot(t1, res_eul(:, i))
+    subplot(3, 1, i);
+    plot(t2, gt_eul(:, i));
+    hold on;
+    plot(t1(1:end-1,:), res_eul_CF(:, i));
+    hold on;
+    plot(t1(1:end-1,:), res_eul_KF(:, i));
     title(titles(i))
-    legend("mavros/imu/data", "estimation")
+    legend("mavros/imu/data", "complementary filter", "kalman filter")
 end
+
