@@ -18,13 +18,13 @@ mag = imu_mag_raw(:, 2:4);        % Magnetometers
 mag = interp1(t2, mag, t1, 'linear');    % Align mag with gyro and accel
 
 % Run Complementary Filter
-orientation = complementary_filter(accel, gyro, mag, t1);
+orientation_CF = complementary_filter(accel, gyro, mag, t1);
 
 % Run Kalman Filter
 % orientation = kalman_filter(accel, gyro, mag, t1);
 
 % Run Extended Kalman Filter
-% orientation = extended_kalman_filter(accel, gyro, mag, t1);
+orientation_EKF = extended_kalman_filter(accel, gyro, mag, t1);
 
 % load gt
 imu_data_gt = load(folders(fid) + "/" + gt_data_topics(3) + ".txt");
@@ -36,7 +36,8 @@ t3 = vicon_gt(:, 1) - imu_data_raw(1, 1);
 
 type = "euler";
 gt_eul = normalize_orientation(imu_data_quat, type);
-res_eul = normalize_orientation(orientation, type);
+res_eul_CF = normalize_orientation(orientation_CF, type);
+res_eul_EKF = normalize_orientation(orientation_EKF, type);
 vicon_eul = normalize_orientation(vicon_quat, type);
 
 figure;
@@ -47,8 +48,10 @@ for i = 1:3
     % hold on
     plot(t2, gt_eul(:, i))
     hold on
-    plot(t1, res_eul(:, i))
+    plot(t1, res_eul_CF(:, i))
+    hold on
+    plot(t1, res_eul_EKF(:, i))
     title(titles(i))
-    legend("mavros/imu/data", "estimation")
+    legend("mavros/imu/data", "complementary filter", "extended kalman filter")
 end
 

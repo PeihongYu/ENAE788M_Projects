@@ -25,7 +25,7 @@ The estimated state is defined as a 4-dim quaternion vector.
 The implemented algorithms are in the "algos_quaternion" folder, including:
 
 * complementary_filter
-* kalman_filter
+* kalman_filter (doesn't work)
 * extended_kalman_filter
 
 The references are:
@@ -37,7 +37,7 @@ The references are:
 
 The results:
 
-![](./algos_quaternion/complementary_filter.jpg)
+![](./algos_quaternion/res_quaternion.jpg)
 
 ## Matlab's estimation function
 
