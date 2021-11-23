@@ -2,3 +2,4 @@
 */build/
 */.catkin_tools
 *.bag
+*/.idea
